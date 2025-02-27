@@ -5,6 +5,22 @@ olist.db
 # Archivos grandes de datos
 dataset/*.csv
 dataset/olist_geolocation_dataset.csv
+*.csv
+*.parquet
+*.pkl
+*.h5
+
+# Archivos grandes en general
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+*.mp4
+*.avi
+*.mov
+*.iso
+*.dmg
 
 # Python
 __pycache__/
