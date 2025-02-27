@@ -4,7 +4,7 @@ from typing import Callable, Dict, List
 
 import pandas as pd
 from pandas import DataFrame, read_sql
-from sqlalchemy import text
+from sqlalchemy import text, inspect
 from sqlalchemy.engine.base import Engine
 
 from src.config import QUERIES_ROOT_PATH
@@ -84,59 +84,121 @@ def query_revenue_by_month_year(database: Engine) -> QueryResult:
 
 
 def query_revenue_per_state(database: Engine) -> QueryResult:
-    """Get the query for revenue per state.
+    """Query revenue per state.
 
     Args:
         database (Engine): Database connection.
 
     Returns:
-        Query: The query for revenue per state.
+        QueryResult: Query result with revenue per state.
     """
-    query_name = QueryEnum.REVENUE_PER_STATE.value
-    query = read_query(QueryEnum.REVENUE_PER_STATE.value)
-    return QueryResult(query=query_name, result=read_sql(query, database))
+    query_name = "revenue_per_state"
+    query = read_query(query_name)
+    
+    # Verificar que las tablas necesarias existan
+    inspector = inspect(database)
+    required_tables = ['olist_orders', 'olist_order_items', 'olist_customers']
+    existing_tables = inspector.get_table_names()
+    
+    for table in required_tables:
+        if table not in existing_tables:
+            raise ValueError(f"La tabla {table} no existe en la base de datos")
+            
+    # Ejecutar la consulta
+    result = read_sql(query, database)
+    
+    return QueryResult(query=query_name, result=result)
 
 
 def query_top_10_least_revenue_categories(database: Engine) -> QueryResult:
-    """Get the query for top 10 least revenue categories.
+    """Query top 10 least revenue categories.
 
     Args:
         database (Engine): Database connection.
 
     Returns:
-        Query: The query for top 10 least revenue categories.
+        QueryResult: Query result with top 10 least revenue categories.
     """
-    query_name = QueryEnum.TOP_10_LEAST_REVENUE_CATEGORIES.value
-    query = read_query(QueryEnum.TOP_10_LEAST_REVENUE_CATEGORIES.value)
-    return QueryResult(query=query_name, result=read_sql(query, database))
+    query_name = "top_10_least_revenue_categories"
+    query = read_query(query_name)
+    
+    # Verificar que las tablas necesarias existan
+    inspector = inspect(database)
+    required_tables = [
+        'olist_orders', 
+        'olist_order_items', 
+        'olist_products',
+        'product_category_name_translation'
+    ]
+    existing_tables = inspector.get_table_names()
+    
+    for table in required_tables:
+        if table not in existing_tables:
+            raise ValueError(f"La tabla {table} no existe en la base de datos")
+    
+    # Ejecutar la consulta
+    result = read_sql(query, database)
+    
+    return QueryResult(query=query_name, result=result)
 
 
 def query_top_10_revenue_categories(database: Engine) -> QueryResult:
-    """Get the query for top 10 revenue categories.
+    """Query top 10 revenue categories.
 
     Args:
         database (Engine): Database connection.
 
     Returns:
-        Query: The query for top 10 revenue categories.
+        QueryResult: Query result with top 10 revenue categories.
     """
-    query_name = QueryEnum.TOP_10_REVENUE_CATEGORIES.value
-    query = read_query(QueryEnum.TOP_10_REVENUE_CATEGORIES.value)
-    return QueryResult(query=query_name, result=read_sql(query, database))
+    query_name = "top_10_revenue_categories"
+    query = read_query(query_name)
+    
+    # Verificar que las tablas necesarias existan
+    inspector = inspect(database)
+    required_tables = [
+        'olist_orders', 
+        'olist_order_items', 
+        'olist_products',
+        'product_category_name_translation'
+    ]
+    existing_tables = inspector.get_table_names()
+    
+    for table in required_tables:
+        if table not in existing_tables:
+            raise ValueError(f"La tabla {table} no existe en la base de datos")
+    
+    # Ejecutar la consulta
+    result = read_sql(query, database)
+    
+    return QueryResult(query=query_name, result=result)
 
 
 def query_real_vs_estimated_delivered_time(database: Engine) -> QueryResult:
-    """Get the query for real vs estimated delivered time.
+    """Query real vs estimated delivered time.
 
     Args:
         database (Engine): Database connection.
 
     Returns:
-        Query: The query for real vs estimated delivered time.
+        QueryResult: Query result with real vs estimated delivered time.
     """
-    query_name = QueryEnum.REAL_VS_ESTIMATED_DELIVERED_TIME.value
-    query = read_query(QueryEnum.REAL_VS_ESTIMATED_DELIVERED_TIME.value)
-    return QueryResult(query=query_name, result=read_sql(query, database))
+    query_name = "real_vs_estimated_delivered_time"
+    query = read_query(query_name)
+    
+    # Verificar que las tablas necesarias existan
+    inspector = inspect(database)
+    required_tables = ['olist_orders']
+    existing_tables = inspector.get_table_names()
+    
+    for table in required_tables:
+        if table not in existing_tables:
+            raise ValueError(f"La tabla {table} no existe en la base de datos")
+    
+    # Ejecutar la consulta
+    result = read_sql(query, database)
+    
+    return QueryResult(query=query_name, result=result)
 
 
 def query_freight_value_weight_relationship(database: Engine) -> QueryResult:
@@ -158,98 +220,59 @@ def query_freight_value_weight_relationship(database: Engine) -> QueryResult:
     Returns:
         QueryResult: The query for freight_value vs weight data.
     """
-    query_name = QueryEnum.GET_FREIGHT_VALUE_WEIGHT_RELATIONSHIP.value
-
-    # Get orders from olist_orders table
-    orders = read_sql("SELECT * FROM olist_orders", database)
-
-    # Get items from olist_order_items table
-    items = read_sql("SELECT * FROM olist_order_items", database)
-
-    # Get products from olist_products table
-    products = read_sql("SELECT * FROM olist_products", database)
-
-    # TODO: Fusionar las tablas items, orders y products usando 'order_id'/'product_id'.
-    # Sugerimos usar la función pandas.merge().
-    # Asigna el resultado a la variable `data`.
-    data = ...
-
-    # TODO: Obtener solo los pedidos entregados.
-    # Usando los resultados anteriores de la fusión (almacenados en la variable `data`),
-    # aplica una máscara booleana para conservar solo los pedidos con estado 'delivered'.
-    # Asigna el resultado a la variable `delivered`.
-    delivered = ...
-
-    # TODO: Obtener la suma de freight_value y product_weight_g por cada order_id.
-    # Un mismo pedido (identificado por 'order_id') puede contener varios productos,
-    # por lo que decidimos sumar los valores de 'freight_value' y 'product_weight_g'
-    # de todos los productos dentro de ese pedido.
-    # Usa el DataFrame de pandas almacenado en la variable `delivered`. Sugerimos
-    # que consultes pandas.DataFrame.groupby() y pandas.DataFrame.agg() para la
-    # transformación de los datos.
-    # Guarda el resultado en la variable `aggregations`.
-    aggregations = ...
-
-    # Mantén el código a continuación tal como está, esto devolverá el resultado de
-    # la variable `aggregations` con el nombre y formato correspondiente.
-    return QueryResult(query=query_name, result=aggregations)
+    query_name = "get_freight_value_weight_relationship"
+    query = read_query(query_name)
+    
+    # Verificar que las tablas necesarias existan
+    inspector = inspect(database)
+    required_tables = [
+        'olist_orders', 
+        'olist_order_items', 
+        'olist_products'
+    ]
+    existing_tables = inspector.get_table_names()
+    
+    for table in required_tables:
+        if table not in existing_tables:
+            raise ValueError(f"La tabla {table} no existe en la base de datos")
+    
+    # Ejecutar la consulta
+    result = read_sql(query, database)
+    
+    return QueryResult(query=query_name, result=result)
 
 
 def query_orders_per_day_and_holidays_2017(database: Engine) -> QueryResult:
-    """Get the query for orders per day and holidays in 2017.
-
-    In this query, we want to get a table with the relation between the number
-    of orders made on each day and also information that indicates if that day was
-    a Holiday.
-
-    Of course, you could also do this with pure SQL statements but we would like
-    to see if you've learned correctly the pandas' concepts seen so far.
-
-    Args:
-        database (Engine): Database connection.
-
-    Returns:
-        Query: The query for orders per day and holidays in 2017.
     """
-    query_name = QueryEnum.ORDERS_PER_DAY_AND_HOLIDAYS_2017.value
-
-    # Reading the public holidays from public_holidays table
-    holidays = read_sql("SELECT * FROM public_holidays", database)
-
-    # Reading the orders from olist_orders table
-    orders = read_sql("SELECT * FROM olist_orders", database)
-
-    # TODO: Convertir la columna order_purchase_timestamp a tipo datetime.
-    # Reemplaza el contenido de la columna `order_purchase_timestamp` en el DataFrame `orders`
-    # con los mismos datos pero convertidos a tipo datetime.
-    # Te sugerimos leer sobre cómo usar pd.to_datetime() para esto.
-    orders["order_purchase_timestamp"] = ...
-
-    # TODO: Filtrar solo las fechas de compra de pedidos del año 2017.
-    # Usando el DataFrame `orders`, aplica una máscara booleana para obtener todas las
-    # columnas, pero solo las filas correspondientes al año 2017.
-    # Asigna el resultado a una nueva variable llamada `filtered_dates`.
-    filtered_dates = ...
-
-    # TODO: Contar la cantidad de pedidos por día.
-    # Usando el DataFrame `filtered_dates`, cuenta cuántos pedidos se hicieron
-    # cada día.
-    # Asigna el resultado a la variable `order_purchase_ammount_per_date`.
-    order_purchase_ammount_per_date = ...
-
-    # TODO: Crear un DataFrame con el resultado. Asígnalo a la variable `result_df`.
-    # Ahora crearemos el DataFrame final para la salida.
-    # Este DataFrame debe tener 3 columnas:
-    #   - 'order_count': con la cantidad de pedidos por día. Debes obtener
-    #                    estos datos de la variable `order_purchase_ammount_per_date`.
-    #   - 'date': la fecha correspondiente a cada cantidad de pedidos.
-    #   - 'holiday': columna booleana con True si esa fecha es festivo,
-    #                y False en caso contrario. Usa el DataFrame `holidays` para esto.
-    result_df = ...
-
-    # Mantén el código a continuación tal como está, esto devolverá el resultado de
-    # la variable `aggregations` con el nombre y formato correspondiente.
-    return QueryResult(query=query_name, result=result_df)
+    Query to get the number of orders per day and holidays in 2017.
+    Args:
+        database (Engine): The database engine.
+    Returns:
+        QueryResult: The query result.
+    """
+    query_name = "orders_per_day_and_holidays_2017"
+    query = read_query(query_name)
+    
+    try:
+        # Execute query to get orders per day
+        result_df = pd.read_sql_query(query, database)
+        
+        # Get holidays for 2017
+        holidays_2017 = get_public_holidays(2017)
+        
+        # Convert date strings to datetime
+        result_df['date'] = pd.to_datetime(result_df['date'])
+        holidays_2017['date'] = pd.to_datetime(holidays_2017['date'])
+        
+        # Add holiday column
+        result_df['holiday'] = result_df['date'].isin(holidays_2017['date'])
+        
+        log.info(f"Query {query_name} executed successfully")
+        return QueryResult(query=query_name, result=result_df)
+        
+    except Exception as e:
+        log.error(f"Error executing query {query_name}: {str(e)}")
+        raise
 
 
 def get_all_queries() -> List[Callable[[Engine], QueryResult]]:
@@ -282,8 +305,33 @@ def run_queries(database: Engine) -> Dict[str, DataFrame]:
         Dict[str, DataFrame]: A dictionary with keys as the query file names and
         values the result of the query as a dataframe.
     """
-    query_results = {}
-    for query in get_all_queries():
-        query_result = query(database)
-        query_results[query_result.query] = query_result.result
-    return query_results
+    results = {}
+    queries = get_all_queries()
+
+    for query in queries:
+        try:
+            # Obtener el nombre de la consulta de la función
+            query_name = query.__name__.replace('query_', '')
+            print(f"\nEjecutando consulta: {query_name}")
+            
+            # Verificar que las tablas necesarias existan
+            inspector = inspect(database)
+            tables = inspector.get_table_names()
+            print(f"Tablas disponibles: {tables}")
+            
+            # Ejecutar la consulta
+            query_result = query(database)
+            
+            if isinstance(query_result.result, DataFrame):
+                if query_result.result.empty:
+                    print(f"Advertencia: La consulta {query_name} devolvió un resultado vacío")
+                else:
+                    print(f"Consulta {query_name} completada. Filas: {len(query_result.result)}")
+            else:
+                print(f"Advertencia: La consulta {query_name} no devolvió un DataFrame")
+            
+            results[query_result.query] = query_result.result
+            
+        except Exception as e:
+            print(f"Error ejecutando consulta {query_name}: {str(e)}")
+            raise

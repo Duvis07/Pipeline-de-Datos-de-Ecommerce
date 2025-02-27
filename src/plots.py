@@ -63,9 +63,9 @@ def plot_global_amount_order_status(df: DataFrame):
     """
     _, ax = plt.subplots(figsize=(6, 3), subplot_kw=dict(aspect="equal"))
 
-    elements = [x.split()[-1] for x in df["order_status"]]
+    elements = [x.split()[-1] for x in df["estado_pedido"]]
 
-    wedges, autotexts = ax.pie(df["Ammount"], textprops=dict(color="w"))
+    wedges, autotexts = ax.pie(df["Cantidad"], textprops=dict(color="w"))
 
     ax.legend(
         wedges,
@@ -83,7 +83,9 @@ def plot_global_amount_order_status(df: DataFrame):
     p = plt.gcf()
     p.gca().add_artist(my_circle)
 
-    plt.show()
+    # Guardar el gráfico
+    plt.savefig('global_amount_order_status.png')
+    plt.close()
 
 
 def plot_revenue_per_state(df: DataFrame):
@@ -179,10 +181,26 @@ def plot_freight_value_weight_relationship(df: DataFrame):
     Args:
         df (DataFrame): Dataframe with freight value weight relationship query result
     """
-    # TODO: Representar gráficamente la relación entre el valor del flete y el peso usando un scatterplot de seaborn.
-    # El eje x debe ser el peso (weight) y el eje y debe ser el valor del flete (freight value).
-
-    raise NotImplementedError
+    plt.figure(figsize=(10, 6))
+    
+    # Crear scatter plot usando seaborn
+    sns.scatterplot(data=df, x='total_weight', y='freight_value', alpha=0.5)
+    
+    # Añadir línea de regresión para ver la tendencia
+    sns.regplot(data=df, x='total_weight', y='freight_value', 
+                scatter=False, color='red', line_kws={'linestyle': '--'})
+    
+    # Personalizar el gráfico
+    plt.title('Relación entre Peso Total y Valor del Flete')
+    plt.xlabel('Peso Total del Pedido (g)')
+    plt.ylabel('Valor del Flete (R$)')
+    
+    # Ajustar márgenes
+    plt.tight_layout()
+    
+    # Guardar el gráfico
+    plt.savefig('freight_value_weight_relationship.png')
+    plt.close()
 
 
 def plot_delivery_date_difference(df: DataFrame):
@@ -191,9 +209,21 @@ def plot_delivery_date_difference(df: DataFrame):
     Args:
         df (DataFrame): Dataframe with delivery date difference query result
     """
-    sns.barplot(data=df, x="Delivery_Difference", y="State").set(
-        title="Difference Between Delivery Estimate Date and Delivery Date"
+    plt.figure(figsize=(10, 6))
+    
+    sns.barplot(data=df, x="Diferencia_Entrega", y="Estado").set(
+        title="Diferencia Entre Fecha Estimada y Fecha Real de Entrega por Estado"
     )
+    
+    plt.xlabel("Diferencia en Días")
+    plt.ylabel("Estado")
+    
+    # Ajustar márgenes
+    plt.tight_layout()
+    
+    # Guardar el gráfico
+    plt.savefig('delivery_date_difference.png')
+    plt.close()
 
 
 def plot_order_amount_per_day_with_holidays(df: DataFrame):
@@ -202,8 +232,27 @@ def plot_order_amount_per_day_with_holidays(df: DataFrame):
     Args:
         df (DataFrame): Dataframe with order amount per day with holidays query result
     """
-    # TODO: Graficar el monto de pedidos por día con los días festivos usando matplotlib.
-    # Marcar los días festivos con líneas verticales.
-    # Sugerencia: usar plt.axvline.
-
-    raise NotImplementedError
+    plt.figure(figsize=(15, 6))
+    
+    # Crear el gráfico de línea para la cantidad de pedidos
+    plt.plot(df['date'], df['order_count'], label='Pedidos por día', color='blue')
+    
+    # Marcar los días festivos con puntos rojos
+    holidays = df[df['holiday']]
+    plt.scatter(holidays['date'], holidays['order_count'], 
+               color='red', label='Días festivos', zorder=5)
+    
+    # Personalizar el gráfico
+    plt.title('Cantidad de Pedidos por Día en 2017 (Días Festivos Marcados)')
+    plt.xlabel('Fecha')
+    plt.ylabel('Cantidad de Pedidos')
+    plt.xticks(rotation=45)
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.legend()
+    
+    # Ajustar márgenes
+    plt.tight_layout()
+    
+    # Guardar el gráfico
+    plt.savefig('orders_per_day_with_holidays.png')
+    plt.close()
