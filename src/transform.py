@@ -2,12 +2,14 @@ from collections import namedtuple
 from enum import Enum
 from typing import Callable, Dict, List
 
+import numpy as np
 import pandas as pd
 from pandas import DataFrame, read_sql
 from sqlalchemy import text, inspect
 from sqlalchemy.engine.base import Engine
 
-from src.config import QUERIES_ROOT_PATH
+from src.config import QUERIES_ROOT_PATH, PUBLIC_HOLIDAYS_URL
+from src.extract import get_public_holidays
 
 QueryResult = namedtuple("QueryResult", ["query", "result"])
 
@@ -258,20 +260,19 @@ def query_orders_per_day_and_holidays_2017(database: Engine) -> QueryResult:
         result_df = pd.read_sql_query(query, database)
         
         # Get holidays for 2017
-        holidays_2017 = get_public_holidays(2017)
+        holidays_2017 = get_public_holidays(PUBLIC_HOLIDAYS_URL, "2017")
         
-        # Convert date strings to datetime
-        result_df['date'] = pd.to_datetime(result_df['date'])
+        # Convert date strings to datetime and then to timestamp in milliseconds
+        result_df['date'] = pd.to_datetime(result_df['date']).astype(np.int64) // 10**6
         holidays_2017['date'] = pd.to_datetime(holidays_2017['date'])
         
         # Add holiday column
-        result_df['holiday'] = result_df['date'].isin(holidays_2017['date'])
+        result_df['holiday'] = result_df['date'].isin([h.timestamp() * 1000 for h in holidays_2017['date']])
         
-        log.info(f"Query {query_name} executed successfully")
         return QueryResult(query=query_name, result=result_df)
         
     except Exception as e:
-        log.error(f"Error executing query {query_name}: {str(e)}")
+        print(f"Error executing query {query_name}: {str(e)}")
         raise
 
 
